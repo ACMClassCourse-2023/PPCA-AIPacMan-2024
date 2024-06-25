@@ -43,7 +43,7 @@ Minimax 是一种用于两人对弈游戏的决策算法，如国际象棋、井
 ```
  X | O | X      X | O | X      X | O | X
 -----------    -----------    -----------
- O | X | X    O | X |     O | X |  
+ O | X | X      O | X |        O | X |  
 -----------    -----------    -----------
    |   | O      X |   | O      X |   | O
 ```
@@ -58,7 +58,7 @@ Minimax 是一种用于两人对弈游戏的决策算法，如国际象棋、井
 ```
  X | O | X      X | O | X      X | O | X
 -----------    -----------    -----------
- O | X | X    O | X |     O | X |  
+ O | X | X      O | X |        O | X |  
 -----------    -----------    -----------
    |   | O      X |   | O      X |   | O
 
@@ -107,6 +107,16 @@ function minimax(node, depth, maximizingPlayer)
 
 Alpha-Beta 剪枝是 Minimax 算法的一种优化。它通过剪枝那些不会影响最终决策的分支，减少需要评估的节点数量。
 
+### Alpha-Beta 剪枝的基本思想
+
+Alpha-Beta 剪枝的主要思想是：在某些情况下，可以提前停止对某些节点的评估，因为这些节点不会影响最终的决策。
+
+- **Alpha 值**：当前节点在最大化玩家层面上可以得到的最高分数。
+- **Beta 值**：当前节点在最小化玩家层面上可以得到的最低分数。
+
+如果在搜索过程中发现一个节点的评估值无法改进当前的 Alpha 或 Beta 值，就可以停止对该节点的进一步搜索。
+
+
 ### 带 Alpha-Beta 剪枝的伪代码
 
 ```pseudo
@@ -120,7 +130,7 @@ function alphabeta(node, depth, α, β, maximizingPlayer)
             eval = alphabeta(child, depth - 1, α, β, false)
             maxEval = max(maxEval, eval)
             α = max(α, eval)
-            if β <= α
+            if β < α
                 break
         return maxEval
     else
@@ -129,7 +139,7 @@ function alphabeta(node, depth, α, β, maximizingPlayer)
             eval = alphabeta(child, depth - 1, α, β, true)
             minEval = min(minEval, eval)
             β = min(β, eval)
-            if β <= α
+            if β < α
                 break
         return minEval
 ```
