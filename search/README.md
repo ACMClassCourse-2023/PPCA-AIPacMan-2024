@@ -13,6 +13,8 @@
 - `game.py`
 - `util.py`
 
+你可以忽略其他支持文件。
+
 运行 `python pacman.py` 即可启动吃豆人游戏，你可以用你的键盘操作吃豆人并探索。
 
 在 `searchAgents.py` 中，将会存在不同的 `agent` 类来决定吃豆人的行为模式。它规划出一条吃豆人穿越迷宫的路径，然后逐步执行该路径。
@@ -82,7 +84,7 @@ python autograder.py -q q2
 
 #### Q3：改变成本函数
 
-虽然 BFS 会找到一条到达目标的最少操作路径，但我们可能希望找到其他意义上“最佳”的路径。考虑 `mediumDottedMaze` 和 `mediumScaryMaze` 这两个地图。通过改变成本函数，我们可以鼓励吃豆人寻找不同的路径。例如，我们可以对鬼魂出没地区的危险步骤收取更多费用，或对食物丰富地区的步骤收取更少费用，而理性的吃豆人代理应该会据此调整其行为。
+虽然 BFS 会找到一条到达目标的最少操作路径，但我们可能希望找到其他意义上“最佳”的路径。考虑 `mediumDottedMaze` 和 `mediumScaryMaze` 这两个地图。通过改变成本函数，我们可以鼓励吃豆人寻找不同的路径。例如，我们可以对鬼魂出没地区的危险步骤收取更多费用，或对食物丰富地区的步骤收取更少费用，而理性的吃豆人 agent 应该会据此调整其行为。
 
 你需要在 `search.py` 中的 `uniformCostSearch` 函数中实现均匀成本图搜索算法。我们鼓励你仔细查看 `util.py` 一些可能对你的实现有用的数据结构。现在你应该在以下所有三种地图中观察到成功的行为，其中下面的 agent 都是 UCS agent，它们仅在使用的成本函数上有所不同（agent 和成本函数已经为你编写好）：
 
@@ -102,7 +104,7 @@ python autograder.py -q q3
 
 #### Q4：A* 搜索
 
-[A* 介绍](https://oi-wiki.org/search/astar/)
+[介绍](https://github.com/ACMClassCourse-2023/PPCA-AIPacMan-2024/blob/main/docs/A*.md)
 
 简单介绍启发式搜索：有一个启发式函数 $h$，在搜索时优先搜索值最小的方向。
 
@@ -227,7 +229,7 @@ python pacman.py -l tinySearch -p AStarFoodSearchAgent
 python pacman.py -l trickySearch -p AStarFoodSearchAgent
 ```
 
-我们的 UCS 代理在大约 13 秒内找到了最佳解决方案，探索了超过 16,000 个节点。
+我们的 UCS agent 在大约 13 秒内找到了最佳解决方案，探索了超过 16,000 个节点。
 
 ```
 python pacman.py -l trickySearch -p SearchAgent -a fn=ucs,prob=FoodSearchProblem
@@ -253,9 +255,9 @@ python autograder.py -q q7
 
 #### Q8：次优搜索
 
-有时，即使使用 A* 和一个好的启发式函数，找到所有点的最优路径也是困难的。在这种情况下，我们仍希望能够快速找到一条相对较好的路径。在这一部分，你将编写一个代理，它总是贪婪地吃掉最近的点。`ClosestDotSearchAgent` 已在 `searchAgents.py` 中实现，但缺少一个找到最近点路径的关键函数。
+有时，即使使用 A* 和一个好的启发式函数，找到所有点的最优路径也是困难的。在这种情况下，我们仍希望能够快速找到一条相对较好的路径。在这一部分，你将编写一个 agent，它总是贪婪地吃掉最近的点。`ClosestDotSearchAgent` 已在 `searchAgents.py` 中实现，但缺少一个找到最近点路径的关键函数。
 
-在 `searchAgents.py` 中实现函数 `findPathToClosestDot`。我们的代理能够在不到一秒钟的时间内以 350 的路径代价，次优地解决了这个迷宫：
+在 `searchAgents.py` 中实现函数 `findPathToClosestDot`。我们的 agent 能够在不到一秒钟的时间内以 350 的路径代价，次优地解决了这个迷宫：
 
 ```
 python pacman.py -l bigSearch -p ClosestDotSearchAgent -z .5

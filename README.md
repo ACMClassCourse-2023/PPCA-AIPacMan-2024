@@ -4,6 +4,8 @@ PPCA AI 吃豆人项目
 
 本项目基于[加州大学伯克利分校的CS 188《Introduction to Artificial Intelligence》课程项目](https://inst.eecs.berkeley.edu/~cs188/sp24/projects/)
 
+[http://ai.berkeley.edu](http://ai.berkeley.edu)
+
 ## Week 1
 
 ### 环境配置
@@ -57,3 +59,8 @@ conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/f
 
 相关文件和介绍在 [search](https://github.com/ACMClassCourse-2023/PPCA-AIPacMan-2024/tree/main/search) 文件夹下。
 
+## Week2
+
+### MultiAgent
+
+相关文件和介绍在 [multiagent](https://github.com/ACMClassCourse-2023/PPCA-AIPacMan-2024/tree/main/multiagent) 文件夹下。
