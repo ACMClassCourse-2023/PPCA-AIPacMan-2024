@@ -35,8 +35,6 @@ python pacman.py --frameTime 0 -p ReflexAgent -k 2
 
 注意：作为特征，尝试重要值的倒数（例如到食物的距离），而不仅仅是值本身。
 
-注意：你正在编写的评估函数正在评估 `state-action` 对；在项目的后续部分，你将评估 `state`。
-
 注意：你可能会发现查看各种对象的内部内容对于调试很有用。你可以通过打印对象的字符串表示来实现这一点。例如，你可以对 `newGhostStates` 使用打印 `print(newGhostStates)`。
 
 选项：默认幽灵是随机的；你也可以使用 `-g DirectionalGhost` 来玩一些更智能的定向幽灵。如果随机性阻止你判断 agent 是否正在改进，你可以使用 `-f` 以固定的随机种子运行（每场游戏都使用相同的随机选择）。你还可以使用 `-n` 连续玩多场游戏。使用 `-q` 关闭图形以快速运行大量游戏。
@@ -85,7 +83,7 @@ python autograder.py -q q2 --no-graphics
 
 - 使用辅助函数递归地实现算法。
 - minimax 算法的正确实现会导致吃豆人在某些测试中输掉游戏。这不是问题，因为这是正确的行为，它会通过测试。
-- 这一部分的吃豆人测试的评估函数已经写好（`self.evaluationFunction`）。你不应该更改这个函数，但要认识到现在我们是在评估状态（`state`），而不是像反射 agent 那样评估动作（`action`）。前瞻 agent 评估未来的状态，而反射 agent 评估当前状态的动作。
+- 这一部分的吃豆人测试的评估函数已经写好（`self.evaluationFunction`）。你不应该更改这个函数。
 - **吃豆人总是 agent 0**，agent 按 agent 索引递增的顺序移动。
 - minimax 中的所有状态都应该是 `GameStates`，要么传递给 `getAction`，要么通过 `GameState.generateSuccessor` 生成。在这个项目中，你不会抽象到简化的状态。
 - 在更大的场景下，如 `openClassic` 和 `mediumClassic`（默认），你会发现吃豆人很擅长不死，但很难赢。他常常会毫无进展地四处游荡。有时，他甚至会在一个豆子旁边游荡而不吃掉它，因为他不知道吃掉那个豆子后要去哪儿。如果你看到这种行为，不要担心，第五个问题会解决这些问题。
@@ -162,7 +160,7 @@ python pacman.py -p ExpectimaxAgent -l trappedClassic -a depth=3 -q -n 10
 
 #### Q5: Evaluation Function
 
-在提供的 `betterEvaluationFunction` 函数中为吃豆人编写一个更好的评估函数。这个评估函数应该评估状态（`state`），而不是像你的反射 agent 评估函数那样评估动作（`action`）。使用深度为 2 的搜索时，你的评估函数应该能在 `smallClassic` 布局中面对一个随机幽灵时胜率超过一半，并且运行速度合理（要获得满分，吃豆人在获胜时的平均得分应约为 1000 分）。
+在提供的 `betterEvaluationFunction` 函数中为吃豆人编写一个更好的评估函数。使用深度为 2 的搜索时，你的评估函数应该能在 `smallClassic` 布局中面对一个随机幽灵时胜率超过一半，并且运行速度合理（要获得满分，吃豆人在获胜时的平均得分应约为 1000 分）。
 
 评分：自动评分器将在 `smallClassic` 布局上运行你的 agent 10 次。我们将以以下方式给你的评估函数打分：
 

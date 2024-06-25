@@ -64,3 +64,7 @@ conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/f
 ### MultiAgent
 
 相关文件和介绍在 [multiagent](https://github.com/ACMClassCourse-2023/PPCA-AIPacMan-2024/tree/main/multiagent) 文件夹下。
+
+### Logic
+
+相关文件和介绍在 [logic](https://github.com/ACMClassCourse-2023/PPCA-AIPacMan-2024/tree/main/logic) 文件夹下。
