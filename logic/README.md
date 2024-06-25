@@ -97,18 +97,18 @@ python pycosat_test.py
 这个问题将让你练习使用项目中用于表示命题逻辑句子的 `Expr` 数据类型。你将在 `logicPlan.py` 中实现以下函数：
 
 - `sentence1()`: 创建一个 `Expr` 实例，表示以下三个句子为真的命题。不要进行任何逻辑简化，只需按此顺序将它们放入列表中，并返回列表的合取。列表中的每个元素应该对应这三个句子中的每一个。
-    $$
-    A \vee B \\
-    \neg A \leftrightarrow (\neg B \vee C) \\
-    \neg A \vee \neg B \vee C
-    $$
+$$
+A \vee B \\
+\neg A \leftrightarrow (\neg B \vee C) \\
+\neg A \vee \neg B \vee C
+$$
 - `sentence2()`: 创建一个Expr实例，表示以下四个句子为真的命题。同样，不要进行任何逻辑简化，只需按此顺序将它们放入列表中，并返回列表的合取。
-    $$
-    C \leftrightarrow (B \vee D) \\
-    A \to (\neg B \wedge \neg D) \\
-    \neg(B \wedge \neg C) \to A \\
-    \neg D \to C
-    $$
+$$
+C \leftrightarrow (B \vee D) \\
+A \to (\neg B \wedge \neg D) \\
+\neg(B \wedge \neg C) \to A \\
+\neg D \to C
+$$
 - `sentence3()`: 使用 `PropSymbolExpr` 构造函数，创建符号 `'PacmanAlive_0'`、`'PacmanAlive_1'`、`'PacmanBorn_0'` 和 `'PacmanKilled_0'`（提示：回忆一下 `PropSymbolExpr(str, a1, a2, a3, a4, time=a5)` 创建的表达式是 `str[a1,a2,a3,a4]_a5`，其中 `str` 是一个字符串；对于这个问题，你应该创建一些与这些字符串完全匹配的字符串）。然后，创建一个 `Expr` 实例，以命题逻辑的形式按顺序编码以下三个英文句子，而不进行任何简化：
     1. 如果 Pacman 在时间 1 是活着的，当且仅当他在时间 0 是活着并且他在时间 0 没有被杀死，或者他在时间 0 不是活着的并且他在时间 0 出生。
     2. 在时间 0，Pacman 不能既是活着的又出生。
@@ -119,6 +119,10 @@ python pycosat_test.py
 - `entails(premise, conclusion)`: 仅当前提(`premise`)蕴含结论(`conclusion`)时才返回 `True`。提示：`findModel` 在这里很有帮助；思考为了使其为真，什么必须是不可满足的，以及不可满足意味着什么。
 - `plTrueInverse(assignments, inverse_statement)`: 仅当给定赋值时，(not `inverse_statement`) 为真时，才返回 True。
 
-### 翻译：
+在继续之前，尝试实例化一个小句子，例如 ($A \wedge B \rightarrow C$)，并对其调用 `to_cnf`。检查输出并确保你理解它。（有关 to_cnf 实现的算法详情，请参考 AIMA 第7.5.2节）。
 
-在继续之前，尝试实例化一个小句子，例如 \(A \wedge B \rightarrow C\)，并对其调用 `to_cnf`。检查输出并确保你理解它。
+要测试和调试代码，请运行：
+
+```
+python autograder.py -q q1
+```
