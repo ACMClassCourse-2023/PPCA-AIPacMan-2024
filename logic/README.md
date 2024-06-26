@@ -1,5 +1,3 @@
-~~coming soon~~
-
 #### 介绍
 
 在这个项目中，你将编写简单的 Python 函数，生成描述 Pacman 物理状态（记为 **pacphysics**）的逻辑句子。然后，你将使用 SAT 求解器 pycosat，解决与 **规划**（生成动作序列以到达目标位置并吃掉所有点）、**定位**（根据本地传感器模型在地图中找到自己）、**建图**（从零开始构建地图）以及 **SLAM**（同时定位与建图）相关的逻辑推理任务。
@@ -308,8 +306,8 @@ Pacman 从已知地图开始，但起始位置未知。它有一个 4-bit 的传
 
 - **添加到知识库**：墙所在的位置（`walls_list`）和不在的位置（not in `walls_list`）。
 - **对于在 `range(agent.num_timesteps)` 中的 $t$**：
-  - 添加 pacphysics、动作和感知信息到知识库。
-  - 使用更新的知识库查找可能的 Pacman 位置。
+  - [添加 pacphysics、动作和感知信息到知识库](https://github.com/ACMClassCourse-2023/PPCA-AIPacMan-2024/blob/main/logic/README.md#%E5%B0%86-pacphysics%E5%8A%A8%E4%BD%9C%E5%92%8C%E6%84%9F%E7%9F%A5%E4%BF%A1%E6%81%AF%E6%B7%BB%E5%8A%A0%E5%88%B0-kb)。
+  - [使用更新的知识库查找可能的 Pacman 位置](https://github.com/ACMClassCourse-2023/PPCA-AIPacMan-2024/blob/main/logic/README.md#%E4%BD%BF%E7%94%A8%E6%9B%B4%E6%96%B0%E7%9A%84-kb-%E6%9F%A5%E6%89%BE%E5%8F%AF%E8%83%BD%E7%9A%84-pacman-%E4%BD%8D%E7%BD%AE)。
   - 在时间 $t$ 上调用 `agent.moveToNextState(action_t)`。
   - 生成（`yield`）可能的位置。
 
@@ -336,8 +334,8 @@ Pacman 现在知道了他的起始位置，但不知道墙的位置（除了外�
 
 1. 获取 Pacman 的初始位置 `(pac_x_0, pac_y_0)`，并将其添加到知识库中。同时添加该位置是否有墙。
 2. 对于 `t` 在 `range(agent.num_timesteps)` 中：
-   - 添加 pacphysics、动作和感知信息到知识库。
-   - 使用更新的知识库查找可证明的墙位置。
+   - [添加 pacphysics、动作和感知信息到知识库](https://github.com/ACMClassCourse-2023/PPCA-AIPacMan-2024/blob/main/logic/README.md#%E5%B0%86-pacphysics%E5%8A%A8%E4%BD%9C%E5%92%8C%E6%84%9F%E7%9F%A5%E4%BF%A1%E6%81%AF%E6%B7%BB%E5%8A%A0%E5%88%B0-kb)。
+   - [使用更新的知识库查找可证明的墙位置](https://github.com/ACMClassCourse-2023/PPCA-AIPacMan-2024/blob/main/logic/README.md#%E4%BD%BF%E7%94%A8%E6%9B%B4%E6%96%B0%E7%9A%84-kb-%E6%9F%A5%E6%89%BE%E5%8F%AF%E8%AF%81%E6%98%8E%E7%9A%84%E5%A2%99%E4%BD%8D%E7%BD%AE)。
    - 在时间 $t$ 上调用 `agent.moveToNextState(action_t)`。
    - 生成 `known_map`。
 
@@ -361,9 +359,9 @@ python autograder.py -q q7
 
 1. 获取 Pacman 的初始位置 `(pac_x_0, pac_y_0)`，并将其添加到知识库（KB）中。相应更新 `known_map` 并将适当的表达式添加到知识库。
 2. 对于 $t$ 在 `range(agent.num_timesteps)` 中：
-   - 添加 pacphysics、动作和感知信息到知识库。使用 `SLAMSensorAxioms`、`SLAMSuccessorAxioms` 和 `numAdjWallsPerceptRules`。
-   - 使用更新的知识库查找可证明的墙位置。
-   - 使用更新的知识库查找可能的 Pacman 位置。
+   - [添加 pacphysics、动作和感知信息到知识库](https://github.com/ACMClassCourse-2023/PPCA-AIPacMan-2024/blob/main/logic/README.md#%E5%B0%86-pacphysics%E5%8A%A8%E4%BD%9C%E5%92%8C%E6%84%9F%E7%9F%A5%E4%BF%A1%E6%81%AF%E6%B7%BB%E5%8A%A0%E5%88%B0-kb)。使用 `SLAMSensorAxioms`、`SLAMSuccessorAxioms` 和 `numAdjWallsPerceptRules`。
+   - [使用更新的知识库查找可证明的墙位置](https://github.com/ACMClassCourse-2023/PPCA-AIPacMan-2024/blob/main/logic/README.md#%E4%BD%BF%E7%94%A8%E6%9B%B4%E6%96%B0%E7%9A%84-kb-%E6%9F%A5%E6%89%BE%E5%8F%AF%E8%AF%81%E6%98%8E%E7%9A%84%E5%A2%99%E4%BD%8D%E7%BD%AE)。
+   - [使用更新的知识库查找可能的 Pacman 位置](https://github.com/ACMClassCourse-2023/PPCA-AIPacMan-2024/blob/main/logic/README.md#%E4%BD%BF%E7%94%A8%E6%9B%B4%E6%96%B0%E7%9A%84-kb-%E6%9F%A5%E6%89%BE%E5%8F%AF%E8%83%BD%E7%9A%84-pacman-%E4%BD%8D%E7%BD%AE)。
    - 在时间 $t$ 上调用 `agent.moveToNextState(action_t)`。
    - 生成 `known_map` 和 `possible_locations`。
 
