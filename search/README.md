@@ -191,7 +191,7 @@ python pacman.py -l mediumCorners -p SearchAgent -a fn=aStarSearch,prob=CornersP
 | >2000            | 0/3  |
 | <=2000           | 1/3  |
 | <=1600           | 2/3  |
-| <=1200           | 1/3  |
+| <=1200           | 3/3  |
 
 请记住：如果你的启发式方法不一致，你将不会获得任何分数，所以要小心！
 
