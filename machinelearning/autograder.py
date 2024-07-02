@@ -1,5 +1,3 @@
-# A custom autograder for this project
-
 ################################################################################
 # A mini-framework for autograding
 ################################################################################
@@ -222,12 +220,11 @@ def main():
 # Tests begin here
 ################################################################################
 
-import numpy as np
+import torch
 import matplotlib
 import contextlib
 
 from torch import nn, Tensor
-import torch
 import backend
 
 def check_dependencies():
@@ -240,9 +237,9 @@ def check_dependencies():
 
     for t in range(400):
         angle = t * 0.05
-        x = np.sin(angle)
-        y = np.cos(angle)
-        line.set_data([x,-x], [y,-y])
+        x = torch.sin(torch.tensor(angle))
+        y = torch.cos(torch.tensor(angle))
+        line.set_data([x.item(), -x.item()], [y.item(), -y.item()])
         fig.canvas.draw_idle()
         fig.canvas.start_event_loop(1e-3)
 
@@ -279,7 +276,7 @@ def verify_node(node, expected_type, expected_shape, method_name):
         assert False, "If you see this message, please report a bug in the autograder"
 
     if expected_type != 'loss':
-        assert all([(expected is '?' or actual == expected) for (actual, expected) in zip(node.detach().numpy().shape, expected_shape)]), (
+        assert all([(expected == '?' or actual == expected) for (actual, expected) in zip(node.shape, expected_shape)]), (
             "{} should return an object with shape {}, got {}".format(
                 method_name, expected_shape, node.shape))
 
@@ -288,7 +285,7 @@ def check_perceptron(tracker):
     import models
 
     print("Sanity checking perceptron...")
-    np_random = np.random.RandomState(0)
+    torch.manual_seed(0)
     
     # Check that the perceptron weights are initialized to a single vector with `dimensions` entries.
     for dimensions in range(1, 10):
@@ -306,16 +303,16 @@ def check_perceptron(tracker):
     # Check that run returns a Tensor, and that the score in the node is correct
     for dimensions in range(1, 10):
         p = models.PerceptronModel(dimensions)
-        point = np_random.uniform(-10, 10, (1, dimensions))
-        score = p.run(Tensor(point))
+        point = torch.empty((1, dimensions)).uniform_(-10, 10)
+        score = p.run(point)
         verify_node(score, 'tensor', (1,), "PerceptronModel.run()")
         calculated_score = score.item()
         
         # Compare run output to actual value
         for param in p.parameters():
-            expected_score = float(np.dot(point.flatten(), param.detach().numpy().flatten()))
+            expected_score = float(torch.dot(point.flatten(), param.detach().flatten()))
 
-        assert np.isclose(calculated_score, expected_score), (
+        assert torch.isclose(torch.tensor(calculated_score), torch.tensor(expected_score)), (
             "The score computed by PerceptronModel.run() ({:.4f}) does not match the expected score ({:.4f})".format(
             calculated_score, expected_score))
 
@@ -323,14 +320,14 @@ def check_perceptron(tracker):
     # case when a point lies exactly on the decision boundary
     for dimensions in range(1, 10):
         p = models.PerceptronModel(dimensions)
-        random_point = np_random.uniform(-10, 10, (1, dimensions))
-        for point in (random_point, np.zeros_like(random_point)):
-            prediction = p.get_prediction(Tensor(point))
+        random_point = torch.empty((1, dimensions)).uniform_(-10, 10)
+        for point in (random_point, torch.zeros_like(random_point)):
+            prediction = p.get_prediction(point)
             assert prediction == 1 or prediction == -1, (
                 "PerceptronModel.get_prediction() should return 1 or -1, not {}".format(
                 prediction))
 
-            expected_prediction = np.where(np.dot(point, p.get_weights().data.T) >= 0, 1, -1).item()
+            expected_prediction = torch.where(torch.dot(point.flatten(), p.get_weights().data.T.flatten()) >= 0, torch.tensor(1), torch.tensor(-1)).item()
             assert prediction == expected_prediction, (
                 "PerceptronModel.get_prediction() returned {}; expected {}".format(
                     prediction, expected_prediction))
@@ -346,27 +343,27 @@ def check_perceptron(tracker):
     dimensions = 2
     for multiplier in (-5, -2, 2, 5):
         p = models.PerceptronModel(dimensions)
-        orig_weights = p.get_weights().data.reshape((1, dimensions)).detach().numpy().copy()
-        if np.abs(orig_weights).sum() == 0.0:
+        orig_weights = p.get_weights().data.reshape((1, dimensions)).detach().clone()
+        if torch.abs(orig_weights).sum() == 0.0:
             # This autograder test doesn't work when weights are exactly zero
             continue
         
         point = multiplier * orig_weights
 
-        sanity_dataset = backend.Custom_Dataset(
-            x=np.tile(point, (500, 1)),
-            y=np.ones((500, 1)) * -1.0
+        sanity_dataset = backend.CustomDataset(
+            x=point.repeat((500, 1)),
+            y=torch.ones((500, 1)) * -1.0
         )
         
         p.train(sanity_dataset)
-        new_weights = p.get_weights().data.reshape((1, dimensions)).detach().numpy()
+        new_weights = p.get_weights().data.reshape((1, dimensions)).detach().clone()
 
         if multiplier < 0:
             expected_weights = orig_weights
         else:
             expected_weights = orig_weights - point
 
-        if not np.all(new_weights == expected_weights):
+        if not torch.equal(new_weights, expected_weights):
             print()
             print("Initial perceptron weights were: [{:.4f}, {:.4f}]".format(
                 orig_weights[0,0], orig_weights[0,1]))
@@ -390,7 +387,7 @@ def check_perceptron(tracker):
 
     assert dataset.epoch != 0, "Perceptron code never iterated over the training data"
 
-    accuracy = np.mean(np.where(np.dot(dataset.x, model.get_weights().data.T) >= 0.0, 1.0, -1.0) == dataset.y)
+    accuracy = torch.mean((torch.where(torch.matmul(torch.tensor(dataset.x, dtype=torch.float32), model.get_weights().data.T) >= 0.0, 1.0, -1.0) == torch.tensor(dataset.y)).float())
     if accuracy < 1.0:
         print("The weights learned by your perceptron correctly classified {:.2%} of training examples".format(accuracy))
         print("To receive full points for this question, your perceptron must converge to 100% accuracy")
@@ -441,7 +438,7 @@ def check_regression(tracker):
     error = labels - train_predicted
     sanity_loss = torch.mean((error.detach())**2)
 
-    assert np.isclose(train_loss, sanity_loss), (
+    assert torch.isclose(torch.tensor(train_loss), sanity_loss), (
         "RegressionModel.get_loss() returned a loss of {:.4f}, "
         "but the autograder computed a loss of {:.4f} "
         "based on the output of RegressionModel()".format(
@@ -484,9 +481,9 @@ def check_digit_classification(tracker):
     model.train(dataset)
 
 
-    test_logits = model.run(torch.tensor(dataset.test_images)).data
-    test_predicted = np.argmax(test_logits, axis=1).detach().numpy()
-    test_accuracy = np.mean(test_predicted == dataset.test_labels)
+    test_logits = model.run(torch.tensor(dataset.test_images)).detach().cpu()
+    test_predicted = torch.argmax(test_logits, axis=1)
+    test_accuracy = torch.mean(torch.eq(test_predicted, torch.tensor(dataset.test_labels)).float())
 
     accuracy_threshold = 0.97
     if test_accuracy >= accuracy_threshold:
@@ -553,10 +550,10 @@ def check_convolution(tracker):
     dataset = backend.DigitClassificationDataset2(model)
 
     def conv2d(a, f):
-        s = f.shape + tuple(np.subtract(a.shape, f.shape) + 1)
-        strd = np.lib.stride_tricks.as_strided
-        subM = strd(a, shape = s, strides = a.strides * 2)
-        return np.einsum('ij,ijkl->kl', f, subM)
+        s = f.shape + tuple(torch.tensor(a.shape) - torch.tensor(f.shape) + 1)
+        strd = torch.as_strided
+        subM = strd(a, size = s, stride = a.stride() * 2)
+        return torch.einsum('ij,ijkl->kl', f, subM)
 
     detected_parameters = None
     
@@ -575,20 +572,20 @@ def check_convolution(tracker):
         assert grad_y[0] != None, "Node returned from RegressionModel.get_loss() does not depend on the provided labels (y)"
     
     for matrix_size in (2, 4, 6): #Test 3 random convolutions to test convolve() function
-        weights = np.random.rand(2,2)
-        input = np.random.rand(matrix_size, matrix_size)
-        student_output = models.Convolve(torch.Tensor(input), torch.Tensor(weights))
+        weights = torch.rand(2,2)
+        input = torch.rand(matrix_size, matrix_size)
+        student_output = models.Convolve(input, weights)
         actual_output = conv2d(input,weights)
-        assert np.isclose(student_output, actual_output).all(), "The convolution returned by Convolve() does not match expected output"
+        assert torch.isclose(student_output, actual_output).all(), "The convolution returned by Convolve() does not match expected output"
 
     tracker.add_points(1/2) # Partial credit for testing whether convolution function works
 
     model.train(dataset)
 
 
-    test_logits = model.run(torch.tensor(dataset.test_images)).data
-    test_predicted = np.argmax(test_logits, axis=1).detach().numpy()
-    test_accuracy = np.mean(test_predicted == dataset.test_labels)
+    test_logits = model.run(torch.tensor(dataset.test_images)).detach().cpu()
+    test_predicted = torch.argmax(test_logits, axis=1)
+    test_accuracy = torch.mean(torch.eq(test_predicted, torch.tensor(dataset.test_labels)).float())
 
     accuracy_threshold = 0.80
     if test_accuracy >= accuracy_threshold:

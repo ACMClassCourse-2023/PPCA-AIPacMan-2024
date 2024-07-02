@@ -1,7 +1,6 @@
 import collections
 import os
 import time
-import os
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,7 +8,6 @@ import numpy as np
 from torch import nn
 import torch
 from torch.utils.data import Dataset, DataLoader
-
 
 use_graphics = True
 
@@ -38,37 +36,24 @@ def get_data_path(filename):
         raise Exception("Could not find data file: {}".format(filename))
     return path
 
-class Custom_Dataset(Dataset):
+class CustomDataset(Dataset):
     def __init__(self, x, y, transform=None):
-        assert isinstance(x, np.ndarray)
-        assert isinstance(y, np.ndarray)
-        assert np.issubdtype(x.dtype, np.floating)
-        assert np.issubdtype(y.dtype, np.floating)
-        assert x.ndim == 2
-        assert y.ndim == 2
-        assert x.shape[0] == y.shape[0]
-        self.x = x
-        self.y = y
+        self.x = torch.tensor(x, dtype=torch.float32)
+        self.y = torch.tensor(y, dtype=torch.float32)
         self.transform = transform
 
     def __len__(self):
         return len(self.x)
 
     def __getitem__(self, idx):
-        if torch.is_tensor(idx):
-            idx = idx.tolist()
-        
-        label = self.y[idx]
         x = self.x[idx]
-         
-        sample = {'x': torch.Tensor(x), 'label': torch.Tensor(label)}
+        y = self.y[idx]
+        sample = {'x': x, 'label': y}
 
         if self.transform:
             sample = self.transform(sample)
-        
-        return sample
-    
 
+        return sample
 
     def get_validation_accuracy(self):
         raise NotImplementedError(
@@ -76,7 +61,7 @@ class Custom_Dataset(Dataset):
             "In this assignment, only the Digit Classification and Language "
             "Identification datasets have validation data.")
 
-class PerceptronDataset(Custom_Dataset):
+class PerceptronDataset(CustomDataset):
     def __init__(self, model):
         points = 500
         x = np.hstack([np.random.randn(points, 2), np.ones((points, 1))])
@@ -103,9 +88,7 @@ class PerceptronDataset(Custom_Dataset):
             self.line = line
             self.text = text
             self.last_update = time.time()
-    
 
-        
     def __getitem__(self, idx):
         self.epoch += 1
 
@@ -114,8 +97,6 @@ class PerceptronDataset(Custom_Dataset):
 
         x = self.x[idx]
         y = self.y[idx]
-
-        
 
         if use_graphics and time.time() - self.last_update > 0.01:
             w = self.model.get_weights().data.flatten()
@@ -133,9 +114,9 @@ class PerceptronDataset(Custom_Dataset):
             self.fig.canvas.start_event_loop(1e-3)
             self.last_update = time.time()
 
-        return {'x': torch.tensor(x, dtype=torch.float32), 'label': torch.tensor(y, dtype=torch.float32)}
-    
-class RegressionDataset(Custom_Dataset):
+        return {'x': x, 'label': y}
+
+class RegressionDataset(CustomDataset):
     def __init__(self, model):
         x = np.expand_dims(np.linspace(-2 * np.pi, 2 * np.pi, num=200), axis=1)
         np.random.RandomState(0).shuffle(x)
@@ -161,13 +142,8 @@ class RegressionDataset(Custom_Dataset):
             self.text = text
             self.last_update = time.time()
 
-    def __len__(self):
-        return len(self.x)
-
     def __getitem__(self, idx):
-
         data = super().__getitem__(idx)
-
         x = data['x']
         y = data['label']
 
@@ -175,18 +151,17 @@ class RegressionDataset(Custom_Dataset):
 
         if use_graphics and time.time() - self.last_update > 0.1:
             predicted = self.model(torch.tensor(self.x, dtype=torch.float32)).data
-            loss = self.model.get_loss(
-                x, y).data
+            loss = self.model.get_loss(x, y).data
             self.learned.set_data(self.x[self.argsort_x], predicted[self.argsort_x])
             self.text.set_text("processed: {:,}\nloss: {:.6f}".format(
                 self.processed, loss))
             self.fig.canvas.draw_idle()
             self.fig.canvas.start_event_loop(1e-3)
             self.last_update = time.time()
-        
+
         return {'x': x, 'label': y}
 
-class DigitClassificationDataset(Custom_Dataset):
+class DigitClassificationDataset(CustomDataset):
     def __init__(self, model):
         mnist_path = get_data_path("mnist.npz")
 
@@ -252,34 +227,25 @@ class DigitClassificationDataset(Custom_Dataset):
             self.status = status
             self.last_update = time.time()
 
-
     def __getitem__(self, idx):
-        
-
         data = super().__getitem__(idx)
-        
         x = data['x']
         y = data['label']
 
         if use_graphics and time.time() - self.last_update > 1:
-            dev_logits = self.model.run(torch.tensor(self.dev_images)).data
-            dev_predicted = np.argmax(dev_logits, axis=1).detach().numpy()
-            dev_probs = np.exp(nn.functional.log_softmax(dev_logits))
+            dev_logits = self.model.run(torch.tensor(self.dev_images, dtype=torch.float32)).detach().cpu()
+            dev_predicted = torch.argmax(dev_logits, axis=1)
+            dev_probs = torch.exp(nn.functional.log_softmax(dev_logits, dim=1))
 
-            dev_accuracy = np.mean(dev_predicted == self.dev_labels)
+            dev_accuracy = torch.mean(torch.eq(dev_predicted, torch.tensor(self.dev_labels)).float())
             self.status.set_text(
-                    "validation accuracy: "
-                    "{:.2%}".format(
-                        dev_accuracy))
+                "validation accuracy: {:.2%}".format(dev_accuracy))
             for i in range(10):
                 predicted = dev_predicted[self.dev_labels == i]
                 probs = dev_probs[self.dev_labels == i][:, i]
-                linspace = np.linspace(
-                    0, len(probs) - 1, self.samples).astype(int)
+                linspace = np.linspace(0, len(probs) - 1, self.samples).astype(int)
                 indices = probs.argsort()[linspace]
-                for j, (prob, image) in enumerate(zip(
-                        probs[indices],
-                        self.dev_images[self.dev_labels == i][indices])):
+                for j, (prob, image) in enumerate(zip(probs[indices], self.dev_images[self.dev_labels == i][indices])):
                     self.images[i][j].set_data(image.reshape((28, 28)))
                     left = prob * (self.width - 1) * 28
                     if predicted[indices[j]] == i:
@@ -287,29 +253,22 @@ class DigitClassificationDataset(Custom_Dataset):
                         self.texts[i][j].set_text("")
                     else:
                         self.images[i][j].set_cmap("Reds")
-                        self.texts[i][j].set_text(predicted[indices[j]])
+                        self.texts[i][j].set_text(predicted[indices[j]].detach().cpu().numpy())
                         self.texts[i][j].set_x(left + 14)
                     self.images[i][j].set_extent([left, left + 28, 0, 28])
             self.fig.canvas.draw_idle()
             self.fig.canvas.start_event_loop(1e-3)
             self.last_update = time.time()
-        
-            if(self.num_items == len(self.x)):
-                self.current_accuracy = self.num_right_items/len(self.x)
-                self.num_right_items = 0
-                self.epoch += 1
 
         return {'x': x, 'label': y}
 
     def get_validation_accuracy(self):
-        dev_logits = self.model.run(torch.tensor(self.dev_images)).data
-        dev_predicted = np.argmax(dev_logits, axis=1).detach().numpy()
-        dev_probs = np.exp(nn.functional.log_softmax(dev_logits))
-
-        dev_accuracy = np.mean(dev_predicted == self.dev_labels)
+        dev_logits = self.model.run(torch.tensor(self.dev_images, dtype=torch.float32)).data
+        dev_predicted = torch.argmax(dev_logits, axis=1).detach()
+        dev_accuracy = (dev_predicted == self.dev_labels).mean()
         return dev_accuracy
 
-class LanguageIDDataset(Custom_Dataset):
+class LanguageIDDataset(CustomDataset):
     def __init__(self, model):
         self.model = model
 
@@ -330,7 +289,7 @@ class LanguageIDDataset(Custom_Dataset):
             self.test_buckets = data['test_buckets']
 
         self.epoch = 0
-        self.bucket_weights = self.train_buckets[:,1] - self.train_buckets[:,0]
+        self.bucket_weights = self.train_buckets[:, 1] - self.train_buckets[:, 0]
         self.bucket_weights = self.bucket_weights / float(self.bucket_weights.sum())
 
         self.chars_print = self.chars
@@ -358,14 +317,12 @@ alphabet above have been substituted with ASCII symbols.""".strip())
         max_word_len = self.dev_x.shape[1]
         max_lang_len = max([len(x) for x in self.language_names])
 
-        self.predicted_template = u"Pred: {:<NUM}".replace('NUM',
-            str(max_lang_len))
+        self.predicted_template = u"Pred: {:<NUM}".replace('NUM', str(max_lang_len))
 
         self.word_template = u"  "
         self.word_template += u"{:<NUM} ".replace('NUM', str(max_word_len))
         self.word_template += u"{:<NUM} ({:6.1%})".replace('NUM', str(max_lang_len))
-        self.word_template += u" {:<NUM} ".replace('NUM',
-            str(max_lang_len + len('Pred: ')))
+        self.word_template += u" {:<NUM} ".replace('NUM', str(max_lang_len + len('Pred: ')))
         for i in range(len(self.language_names)):
             self.word_template += u"|{}".format(self.language_codes[i])
             self.word_template += "{probs[" + str(i) + "]:4.0%}"
@@ -374,22 +331,21 @@ alphabet above have been substituted with ASCII symbols.""".strip())
 
     def __len__(self):
         return len(self.train_x)
-    
+
     def _encode(self, inp_x, inp_y):
         xs = []
         for i in range(inp_x.shape[1]):
-
-            if np.all(np.array(inp_x[:,i])  == -1):
+            if np.all(np.array(inp_x[:, i]) == -1):
                 break
-            assert not np.any(np.array(inp_x[:,i]) == -1), (
+            assert not np.any(np.array(inp_x[:, i]) == -1), (
                 "Please report this error in the project: batching by length was done incorrectly in the provided code")
-            x = np.eye(len(self.chars))[np.array(inp_x[:,i], dtype=int)]
+            x = np.eye(len(self.chars))[np.array(inp_x[:, i], dtype=int)]
             xs.append(x)
         y = np.eye(len(self.language_names))[inp_y]
-        j = [[0 for j in range(47)]]
-        
-        if(len(inp_x) == 1):
-            return torch.nn.functional.pad(torch.tensor(xs, dtype=torch.float),(0,0,0,0,0,10 - len(xs))), torch.tensor(y, dtype=torch.float)
+        j = [[0 for _ in range(47)]]
+
+        if len(inp_x) == 1:
+            return nn.functional.pad(torch.tensor(xs, dtype=torch.float), (0, 0, 0, 0, 0, 10 - len(xs))), torch.tensor(y, dtype=torch.float)
 
         return torch.tensor(xs, dtype=torch.float), torch.tensor(y, dtype=torch.float)
 
@@ -416,8 +372,7 @@ alphabet above have been substituted with ASCII symbols.""".strip())
 
             all_predicted.extend(list(predicted.data))
             all_correct.extend(list(data_y[start:end]))
-        sftmax = nn.Softmax()
-        all_predicted_probs = [sftmax(torch.tensor(i)) for i in all_predicted]
+        all_predicted_probs = [nn.functional.softmax(torch.tensor(i), dim=-1) for i in all_predicted]
 
         all_predicted = [i.argmax() for i in all_predicted_probs]
         all_correct = np.asarray(all_correct)
@@ -425,34 +380,18 @@ alphabet above have been substituted with ASCII symbols.""".strip())
         return all_predicted_probs, all_predicted, all_correct
 
     def __getitem__(self, idx):
-
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
-        
         ret = self._encode(self.train_x[idx:idx+1], self.train_y[idx:idx+1])
         return {'x': torch.squeeze(ret[0]), 'label': torch.squeeze(ret[1])}
 
     def get_validation_accuracy(self):
-        dev_predicted_probs, dev_predicted, dev_correct = self._predict()
-        dev_accuracy = np.mean(dev_predicted == dev_correct)
+        dev_predicted_probs, dev_predicted, dev_correct = self._predict('dev')
+        dev_accuracy = (torch.tensor(dev_predicted) == torch.tensor(dev_correct)).float().mean().item()
         return dev_accuracy
-    
-    def collate(self, batch):
-        '''
-        Padds batch of variable length
 
-
-        '''
-        ## get sequence lengths
-        lengths = torch.tensor([ t['x'].shape[0] for t in batch ])
-        ## padd
-        batch_x = [ torch.Tensor(t['x']) for t in batch ]
-        batch_y = [ torch.Tensor(t['labels']) for t in batch ]
-        return {'x':batch_x,'label':batch_y}
-
-
-class DigitClassificationDataset2(Custom_Dataset):
+class DigitClassificationDataset2(CustomDataset):
     def __init__(self, model):
         mnist_path = get_data_path("mnist.npz")
         training_size = 200
@@ -487,28 +426,20 @@ class DigitClassificationDataset2(Custom_Dataset):
             images = collections.defaultdict(list)
             texts = collections.defaultdict(list)
             for i in reversed(range(10)):
-                ax[i] = plt.subplot2grid((30, 1), (3 * i, 0), 2, 1,
-                                         sharex=ax.get(9))
+                ax[i] = plt.subplot2grid((30, 1), (3 * i, 0), 2, 1, sharex=ax.get(9))
                 plt.setp(ax[i].get_xticklabels(), visible=i == 9)
                 ax[i].set_yticks([])
-                ax[i].text(-0.03, 0.5, i, transform=ax[i].transAxes,
-                           va="center")
+                ax[i].text(-0.03, 0.5, i, transform=ax[i].transAxes, va="center")
                 ax[i].set_xlim(0, 28 * width)
                 ax[i].set_ylim(0, 28)
                 for j in range(samples):
-                    images[i].append(ax[i].imshow(
-                        np.zeros((28, 28)), vmin=0, vmax=1, cmap="Greens",
-                        alpha=0.3))
-                    texts[i].append(ax[i].text(
-                        0, 0, "", ha="center", va="top", fontsize="smaller"))
+                    images[i].append(ax[i].imshow(np.zeros((28, 28)), vmin=0, vmax=1, cmap="Greens", alpha=0.3))
+                    texts[i].append(ax[i].text(0, 0, "", ha="center", va="top", fontsize="smaller"))
             ax[9].set_xticks(np.linspace(0, 28 * width, 11))
-            ax[9].set_xticklabels(
-                ["{:.1f}".format(num) for num in np.linspace(0, 1, 11)])
+            ax[9].set_xticklabels(["{:.1f}".format(num) for num in np.linspace(0, 1, 11)])
             ax[9].tick_params(axis="x", pad=16)
             ax[9].set_xlabel("Probability of Correct Label")
-            status = ax[0].text(
-                0.5, 1.5, "", transform=ax[0].transAxes, ha="center",
-                va="bottom")
+            status = ax[0].text(0.5, 1.5, "", transform=ax[0].transAxes, ha="center", va="bottom")
             plt.show(block=False)
 
             self.width = width
@@ -519,65 +450,46 @@ class DigitClassificationDataset2(Custom_Dataset):
             self.status = status
             self.last_update = time.time()
 
-
     def __getitem__(self, idx):
-        
-
         data = super().__getitem__(idx)
-        
         x = data['x']
         y = data['label']
 
         if use_graphics and time.time() - self.last_update > 1:
-            dev_logits = self.model.run(torch.tensor(self.dev_images)).data
-            dev_predicted = np.argmax(dev_logits, axis=1).detach().numpy()
-            dev_probs = np.exp(nn.functional.log_softmax(dev_logits))
+            dev_logits = self.model.run(torch.tensor(self.dev_images, dtype=torch.float32)).detach().cpu()
+            dev_predicted = torch.argmax(dev_logits, axis=1)
+            dev_probs = torch.exp(nn.functional.log_softmax(dev_logits, dim=1))
 
-            dev_accuracy = np.mean(dev_predicted == self.dev_labels)
-            self.status.set_text(
-                    "validation accuracy: "
-                    "{:.2%}".format(
-                        dev_accuracy))
+            dev_accuracy = torch.mean(torch.eq(dev_predicted, torch.tensor(self.dev_labels)).float())
+            self.status.set_text("validation accuracy: {:.2%}".format(dev_accuracy))
             for i in range(10):
                 predicted = dev_predicted[self.dev_labels == i]
                 probs = dev_probs[self.dev_labels == i][:, i]
-                linspace = np.linspace(
-                    0, len(probs) - 1, self.samples).astype(int)
+                linspace = np.linspace(0, len(probs) - 1, self.samples).astype(int)
                 indices = probs.argsort()[linspace]
-                for j, (prob, image) in enumerate(zip(
-                        probs[indices],
-                        self.dev_images[self.dev_labels == i][indices])):
+                for j, (prob, image) in enumerate(zip(probs[indices], self.dev_images[self.dev_labels == i][indices])):
                     self.images[i][j].set_data(image.reshape((28, 28)))
-                    left = prob * (self.width - 1) * 28
+                    left = (prob * (self.width - 1) * 28).detach().cpu().numpy()
                     if predicted[indices[j]] == i:
                         self.images[i][j].set_cmap("Greens")
                         self.texts[i][j].set_text("")
                     else:
                         self.images[i][j].set_cmap("Reds")
-                        self.texts[i][j].set_text(predicted[indices[j]])
+                        self.texts[i][j].set_text(predicted[indices[j]].detach().cpu().numpy())
                         self.texts[i][j].set_x(left + 14)
                     self.images[i][j].set_extent([left, left + 28, 0, 28])
             self.fig.canvas.draw_idle()
             self.fig.canvas.start_event_loop(1e-3)
             self.last_update = time.time()
-        
-            if(self.num_items == len(self.x)):
-                self.current_accuracy = self.num_right_items/len(self.x)
-                self.num_right_items = 0
-                self.epoch += 1
 
         return {'x': x, 'label': y}
 
     def get_validation_accuracy(self):
-        dev_logits = self.model.run(torch.tensor(self.dev_images)).data
-        dev_predicted = np.argmax(dev_logits, axis=1).detach().numpy()
-        dev_probs = np.exp(nn.functional.log_softmax(dev_logits))
-
-        dev_accuracy = np.mean(dev_predicted == self.dev_labels)
+        dev_logits = self.model.run(torch.tensor(self.dev_images, dtype=torch.float32)).data
+        dev_predicted = torch.argmax(dev_logits, axis=1).detach()
+        dev_accuracy = torch.mean(torch.eq(dev_predicted, torch.tensor(self.dev_labels)).float())
         return dev_accuracy
 
-
-    
 def main():
     import models
     model = models.PerceptronModel(3)
@@ -598,4 +510,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
