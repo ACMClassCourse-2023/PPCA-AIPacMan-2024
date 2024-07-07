@@ -150,7 +150,7 @@ class RegressionDataset(CustomDataset):
         self.processed += 1
 
         if use_graphics and time.time() - self.last_update > 0.1:
-            predicted = self.model(torch.tensor(self.x, dtype=torch.float32)).data
+            predicted = self.model(torch.tensor(self.x, dtype=torch.float32)).detach().cpu().numpy()
             loss = self.model.get_loss(x, y).data
             self.learned.set_data(self.x[self.argsort_x], predicted[self.argsort_x])
             self.text.set_text("processed: {:,}\nloss: {:.6f}".format(
@@ -263,9 +263,9 @@ class DigitClassificationDataset(CustomDataset):
         return {'x': x, 'label': y}
 
     def get_validation_accuracy(self):
-        dev_logits = self.model.run(torch.tensor(self.dev_images, dtype=torch.float32)).data
-        dev_predicted = torch.argmax(dev_logits, axis=1).detach()
-        dev_accuracy = (dev_predicted == self.dev_labels).mean()
+        dev_logits = self.model.run(torch.tensor(self.dev_images, dtype=torch.float32))
+        dev_predicted = torch.argmax(dev_logits, axis=1).detach().cpu()
+        dev_accuracy = (dev_predicted == torch.tensor(self.dev_labels)).float().mean().item()
         return dev_accuracy
 
 class LanguageIDDataset(CustomDataset):
@@ -370,9 +370,9 @@ alphabet above have been substituted with ASCII symbols.""".strip())
             xs, y = self._encode(data_x[start:end], data_y[start:end])
             predicted = self.model.run(xs)
 
-            all_predicted.extend(list(predicted.data))
+            all_predicted.extend(list(predicted.detach().cpu()))
             all_correct.extend(list(data_y[start:end]))
-        all_predicted_probs = [nn.functional.softmax(torch.tensor(i), dim=-1) for i in all_predicted]
+        all_predicted_probs = [nn.functional.softmax(i, dim=-1) for i in all_predicted]
 
         all_predicted = [i.argmax() for i in all_predicted_probs]
         all_correct = np.asarray(all_correct)
@@ -485,9 +485,9 @@ class DigitClassificationDataset2(CustomDataset):
         return {'x': x, 'label': y}
 
     def get_validation_accuracy(self):
-        dev_logits = self.model.run(torch.tensor(self.dev_images, dtype=torch.float32)).data
-        dev_predicted = torch.argmax(dev_logits, axis=1).detach()
-        dev_accuracy = torch.mean(torch.eq(dev_predicted, torch.tensor(self.dev_labels)).float())
+        dev_logits = self.model.run(torch.tensor(self.dev_images, dtype=torch.float32))
+        dev_predicted = torch.argmax(dev_logits, axis=1).detach().cpu()
+        dev_accuracy = (dev_predicted == torch.tensor(self.dev_labels)).float().mean().item()
         return dev_accuracy
 
 def main():
