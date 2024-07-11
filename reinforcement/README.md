@@ -134,13 +134,13 @@ python gridworld.py -a value -i 5
 
 要查看一组参数产生的行为，请运行以下命令以查看 GUI：
 
-```bash
+```
 python gridworld.py -g DiscountGrid -a value --discount [YOUR_DISCOUNT] --noise [YOUR_NOISE] --livingReward [YOUR_LIVING_REWARD]
 ```
 
 要检查你的答案，请运行自动评分程序：
 
-```bash
+```
 python autograder.py -q q2
 ```
 
@@ -162,7 +162,7 @@ python autograder.py -q q2
 
 在实现 Q-learning 更新后，你可以使用键盘手动控制观看你的 Q-learner 学习：
 
-```bash
+```
 python gridworld.py -a q -k 5 -m
 ```
 
@@ -172,7 +172,7 @@ python gridworld.py -a q -k 5 -m
 
 评分：我们将运行你的 Q-learning 代理，并检查在每个呈现相同示例集的情况下，它是否学习了与我们的参考实现相同的 Q 值和策略。要评分你的实现，请运行自动评分程序：
 
-```bash
+```
 python autograder.py -q q3
 ```
 
@@ -184,7 +184,7 @@ python autograder.py -q q3
 
 在实现 `getAction` 方法后，观察代理在 `GridWorld` 中的以下行为（epsilon = 0.3）：
 
-```bash
+```
 python gridworld.py -a q -k 100
 ```
 
@@ -192,7 +192,7 @@ python gridworld.py -a q -k 100
 
 你还可以观察以下不同 epsilon 值的模拟。代理的行为是否与预期一致？
 
-```bash
+```
 python gridworld.py -a q -k 100 --noise 0.0 -e 0.1
 
 python gridworld.py -a q -k 100 --noise 0.0 -e 0.9
@@ -200,13 +200,13 @@ python gridworld.py -a q -k 100 --noise 0.0 -e 0.9
 
 要测试你的实现，请运行自动评分程序：
 
-```bash
+```
 python autograder.py -q q4
 ```
 
 无需额外代码，你现在应该能够运行一个 Q-learning 的爬行机器人：
 
-```bash
+```
 python crawler.py
 ```
 
@@ -218,7 +218,7 @@ python crawler.py
 
 现在是时候玩一些吃豆人游戏了！吃豆人将在两个阶段进行游戏。在第一个阶段，即训练阶段，吃豆人将开始学习位置和动作的值。由于即使是微小的网格也需要很长时间才能学习准确的 Q 值，吃豆人的训练游戏默认在静默模式下运行，不显示 GUI（或控制台）显示。训练完成后，吃豆人将进入测试模式。在测试时，吃豆人的 `self.epsilon` 和 `self.alpha` 将设置为 0.0，有效地停止 Q-learning 并禁用探索，以便吃豆人能够利用他学到的策略。默认情况下，测试游戏会在 GUI 中显示。无需任何代码更改，你应该能够运行 Q-learning 吃豆人来进行非常小的网格游戏，如下所示：
 
-```bash
+```
 python pacman.py -p PacmanQAgent -x 2000 -n 2010 -l smallGrid
 ```
 
@@ -228,7 +228,7 @@ python pacman.py -p PacmanQAgent -x 2000 -n 2010 -l smallGrid
 
 要评分你的答案，运行：
 
-```bash
+```
 python autograder.py -q q5
 ```
 
@@ -238,7 +238,7 @@ python autograder.py -q q5
 
 注意：如果你想观看 10 个训练游戏以查看发生了什么，请使用以下命令：
 
-```bash
+```
 python pacman.py -p PacmanQAgent -n 10 -l smallGrid -a numTraining=10
 ```
 
@@ -274,7 +274,7 @@ $\text{difference} = \left( r + \gamma \max_{a'} Q(s', a') \right) - Q(s, a)$
 
 默认情况下，`ApproximateQAgent` 使用 `IdentityExtractor`，它为每个（状态，动作）对分配单个特征。使用此特征提取器时，你的近似 Q 学习代理应与 `PacmanQAgent` 完全相同。你可以使用以下命令测试这一点：
 
-```bash
+```
 python pacman.py -p ApproximateQAgent -x 2000 -n 2010 -l smallGrid
 ```
 
@@ -282,13 +282,13 @@ python pacman.py -p ApproximateQAgent -x 2000 -n 2010 -l smallGrid
 
 一旦你确信你的近似学习器在身份特征下正确工作，请使用我们的自定义特征提取器运行你的近似 Q 学习代理，它可以轻松地学会获胜：
 
-```bash
+```
 python pacman.py -p ApproximateQAgent -a extractor=SimpleExtractor -x 50 -n 60 -l mediumGrid
 ```
 
 即使是更大的布局，你的 `ApproximateQAgent` 也不应有问题（警告：这可能需要几分钟的训练时间）：
 
-```bash
+```
 python pacman.py -p ApproximateQAgent -a extractor=SimpleExtractor -x 50 -n 60 -l mediumClassic
 ```
 
@@ -296,6 +296,29 @@ python pacman.py -p ApproximateQAgent -a extractor=SimpleExtractor -x 50 -n 60 -
 
 评分：我们将运行你的近似 Q 学习代理，并检查它在每种情况下学习到的 Q 值和特征权重是否与我们的参考实现相同。要评分你的实现，运行：
 
-```bash
+```
 python autograder.py -q q6
+```
+
+#### Q7: Deep Q-Learning
+
+你将结合本项目之前的 Q 学习概念和前一个项目中的机器学习概念, 在 `model.py` 中，你将实现 `DeepQNetwork`，它是一个神经网络，能够在给定状态下预测所有可能动作的 Q 值。
+
+你需要实现以下函数：
+
+1. `__init__()`：就像在项目 5 中一样，你将在这里初始化神经网络的所有参数。你还必须初始化以下变量：
+    - `self.parameters`：一个包含你前向传播过程中所有参数的列表（仅当你使用此项目的原始版本时）。
+    - `self.learning_rate`：你将在 `gradient_update()` 中使用它。
+    - `self.numTrainingGames`：Pacman 将要进行的游戏数量，以收集转换并学习其 Q 值；注意，这个数量应该大于 1000，因为大约前 1000 场游戏用于探索，不用于更新 Q 网络。
+    - `self.batch_size`：模型每次梯度更新应使用的转换数量。自动评分器将使用此变量；在设置后你不需要访问此变量。
+2. `get_loss()`：返回预测的 Q 值（由你的网络输出）与 `Q_targets`（你将其视为真实值）之间的平方误差。
+3. `forward()`：类似于项目 5 中的同名方法，在这里你将返回通过你的 Q 网络进行前向传播的结果。（输出应为大小为 `(batch_size, num_actions)` 的向量，因为我们想返回在给定状态下所有可能动作的 Q 值。）
+4. `gradient_update()`：遍历你的 `self.parameters` 并根据计算出的梯度更新每一个参数。然而，与项目 5 不同的是，你不会在这个函数中遍历整个数据集，也不会反复更新参数直到收敛。这个函数应该只为每个参数执行一次梯度更新。自动评分器将反复调用此函数来更新你的网络。
+
+对于 `gradient_update()`，我们建议使用 SGD 优化器，而不是像在机器学习项目中使用的 Adam。两者的用法完全相同，但在这种情况下，SGD 往往表现得更好。你也可以尝试使用不同的优化器，但 SGD 是工作人员的解决方案中使用的，并且表现相对较好。
+
+评分标准：我们将在你的 Deep Q 学习 Pacman 代理在 `self.numTrainingGames` 场游戏后训练后运行 10 场游戏。如果你的代理至少赢得 6/10 场游戏，你将获得满分。如果你的代理至少赢得 8/10 场游戏，你将获得 1 个额外分数（5/4）。请注意，尽管我们在后台训练循环中实施了一些技巧，深度 Q 学习并不以稳定性著称。你的代理每次运行的获胜场次可能会有所不同。要获得额外分数，你的实现应该始终超过 80% 的门槛。
+
+```
+python autograder.py -q q7
 ```
