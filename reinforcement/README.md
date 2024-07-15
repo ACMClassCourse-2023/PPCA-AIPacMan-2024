@@ -25,6 +25,7 @@ python autograder.py -t test_cases/q2/1-bridge-grid
 - `valueIterationAgents.py`：用于解决已知MDP的值迭代 agent。
 - `qlearningAgents.py`：用于Gridworld、Crawler和Pacman的Q学习 agent。
 - `analysis.py`：用于填写项目中提出的问题的答案。
+- `model.py`：用于实现深度 Q 学习的神经网络。
 
 
 你可以阅读并参考来帮助你实现代码的文件有：

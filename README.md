@@ -80,3 +80,15 @@ conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/f
 ### Tracking
 
 相关文件和介绍在 [tracking](https://github.com/ACMClassCourse-2023/PPCA-AIPacMan-2024/tree/main/tracking) 文件夹下。
+
+## Week3
+
+### Machine Learning
+
+相关文件和介绍在 [machinelearning](https://github.com/ACMClassCourse-2023/PPCA-AIPacMan-2024/tree/main/machinelearning) 文件夹下。
+
+## Week4
+
+### Reinforcement Learning
+
+相关文件和介绍在 [reinforcement](https://github.com/ACMClassCourse-2023/PPCA-AIPacMan-2024/tree/main/reinforcement) 文件夹下。
